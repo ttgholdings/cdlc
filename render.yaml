@@ -3,7 +3,7 @@ services:
   - type: pserv
     name: librechat-postgres
     env: docker
-    plan: standard
+    plan: starter
     dockerfilePath: ./Dockerfile.postgres
     dockerContext: .
     envVars:
@@ -21,7 +21,7 @@ services:
   # Redis for Caching and Sessions
   - type: redis
     name: librechat-redis
-    plan: standard
+    plan: starter
     maxmemoryPolicy: allkeys-lru
     ipAllowList:
       - source: 0.0.0.0/0
@@ -31,7 +31,7 @@ services:
   - type: pserv
     name: librechat-mongodb
     env: docker
-    plan: standard
+    plan: starter
     dockerfilePath: ./Dockerfile.mongo
     dockerContext: .
     envVars:
@@ -50,7 +50,7 @@ services:
   - type: pserv
     name: librechat-meilisearch
     env: docker
-    plan: standard
+    plan: starter
     dockerfilePath: ./Dockerfile.meili
     dockerContext: .
     envVars:
@@ -69,7 +69,7 @@ services:
   - type: web
     name: librechat-rag-api
     env: docker
-    plan: standard
+    plan: starter
     dockerfilePath: ./Dockerfile.rag
     dockerContext: .
     envVars:
@@ -119,7 +119,7 @@ services:
   - type: web
     name: librechat-backend
     env: node
-    plan: standard
+    plan: starter
     buildCommand: npm ci
     startCommand: npm run backend
     envVars:
@@ -307,7 +307,7 @@ services:
   - type: web
     name: librechat-frontend
     env: static
-    plan: standard
+    plan: starter
     buildCommand: npm ci
     staticPublishPath: ./client/dist
     envVars:
@@ -323,7 +323,7 @@ databases:
   - name: librechat-vectors
     databaseName: vectors
     user: librechat
-    plan: standard
+    plan: basic-256mb
 
 envVarGroups:
   - name: ai-providers-primary
@@ -377,4 +377,3 @@ envVarGroups:
     envVars:
       - key: DALLE_API_KEY
         sync: false
-
