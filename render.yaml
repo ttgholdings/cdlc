@@ -67,7 +67,7 @@ services:
 
   # RAG API Service
   - type: web
-  name: librechat-rag-api
+    name: librechat-rag-api
     env: docker
     plan: free
     dockerfilePath: ./Dockerfile.rag
