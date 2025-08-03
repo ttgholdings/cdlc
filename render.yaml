@@ -1,361 +1,340 @@
 services:
-
-# PostgreSQL Database for RAG/Vector Storage
-
-- type: pserv
-  name: librechat-postgres
-  env: docker
-  plan: free  # Changed from ‘starter’ to ‘free’
-  dockerfilePath: ./Dockerfile.postgres
-  dockerContext: .
-  envVars:
-  - key: POSTGRES_DB
-    value: librechat_rag
-  - key: POSTGRES_USER
-    value: librechat
-  - key: POSTGRES_PASSWORD
-    generateValue: true
-    disk:
-    name: postgres-data
-    mountPath: /var/lib/postgresql/data
-    sizeGB: 20
-
-# Redis for Caching and Sessions
-
-- type: redis
-  name: librechat-redis
-  plan: free  # Changed from ‘starter’ to ‘free’
-  maxmemoryPolicy: allkeys-lru
-  ipAllowList:
-  - source: 0.0.0.0/0
-    description: Allow all internal traffic
-
-# MongoDB Primary Database
-
-- type: pserv
-  name: librechat-mongodb
-  env: docker
-  plan: free  # Changed from ‘starter’ to ‘free’
-  dockerfilePath: ./Dockerfile.mongo
-  dockerContext: .
-  envVars:
-  - key: MONGO_INITDB_ROOT_USERNAME
-    value: librechat
-  - key: MONGO_INITDB_ROOT_PASSWORD
-    generateValue: true
-  - key: MONGO_INITDB_DATABASE
-    value: LibreChat
-    disk:
-    name: mongo-data
-    mountPath: /data/db
-    sizeGB: 50
-
-# MeiliSearch for Search Functionality
-
-- type: pserv
-  name: librechat-meilisearch
-  env: docker
-  plan: free  # Changed from ‘starter’ to ‘free’
-  dockerfilePath: ./Dockerfile.meili
-  dockerContext: .
-  envVars:
-  - key: MEILI_MASTER_KEY
-    generateValue: true
-  - key: MEILI_ENV
-    value: production
-  - key: MEILI_HTTP_ADDR
-    value: 0.0.0.0:7700
-    disk:
-    name: meili-data
-    mountPath: /meili_data
-    sizeGB: 10
-
-# RAG API Service
-
-- type: web
-  name: librechat-rag-api
-  env: docker
-  plan: free  # Changed from ‘starter’ to ‘free’
-  dockerfilePath: ./Dockerfile.rag
-  dockerContext: .
-  envVars:
-  - key: NODE_ENV
-    value: production
-  - key: PORT
-    value: 8000
-  - key: POSTGRES_HOST
-    fromService:
-    type: pserv
+  # PostgreSQL Database for RAG/Vector Storage
+  - type: pserv
     name: librechat-postgres
-    property: host
-  - key: POSTGRES_PORT
-    fromService:
-    type: pserv
-    name: librechat-postgres
-    property: port
-  - key: POSTGRES_DB
-    value: librechat_rag
-  - key: POSTGRES_USER
-    value: librechat
-  - key: POSTGRES_PASSWORD
-    fromService:
-    type: pserv
-    name: librechat-postgres
-    envVarKey: POSTGRES_PASSWORD
-  - fromGroup: ai-providers-primary
-  - key: EMBEDDINGS_PROVIDER
-    value: openai
-  - key: EMBEDDINGS_MODEL
-    value: text-embedding-3-large
-  - key: EMBEDDINGS_DIMENSIONS
-    value: 3072
-  - key: RAG_USE_FULL_CONTEXT
-    value: true
-  - key: MAX_CHUNK_SIZE
-    value: 8192
-  - key: CHUNK_OVERLAP
-    value: 400
+    env: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile.postgres
+    dockerContext: .
+    envVars:
+      - key: POSTGRES_DB
+        value: librechat_rag
+      - key: POSTGRES_USER
+        value: librechat
+      - key: POSTGRES_PASSWORD
+        generateValue: true
+    disk:
+      name: postgres-data
+      mountPath: /var/lib/postgresql/data
+      sizeGB: 20
+
+  # Redis for Caching and Sessions
+  - type: redis
+    name: librechat-redis
+    plan: starter
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: Allow all internal traffic
+
+  # MongoDB Primary Database
+  - type: pserv
+    name: librechat-mongodb
+    env: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile.mongo
+    dockerContext: .
+    envVars:
+      - key: MONGO_INITDB_ROOT_USERNAME
+        value: librechat
+      - key: MONGO_INITDB_ROOT_PASSWORD
+        generateValue: true
+      - key: MONGO_INITDB_DATABASE
+        value: LibreChat
+    disk:
+      name: mongo-data
+      mountPath: /data/db
+      sizeGB: 50
+
+  # MeiliSearch for Search Functionality
+  - type: pserv
+    name: librechat-meilisearch
+    env: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile.meili
+    dockerContext: .
+    envVars:
+      - key: MEILI_MASTER_KEY
+        generateValue: true
+      - key: MEILI_ENV
+        value: production
+      - key: MEILI_HTTP_ADDR
+        value: 0.0.0.0:7700
+    disk:
+      name: meili-data
+      mountPath: /meili_data
+      sizeGB: 10
+
+  # RAG API Service
+  - type: web
+    name: librechat-rag-api
+    env: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile.rag
+    dockerContext: .
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 8000
+      - fromGroup: ai-providers-primary
+      - key: POSTGRES_HOST
+        fromService:
+          type: pserv
+          name: librechat-postgres
+          property: host
+      - key: POSTGRES_PORT
+        fromService:
+          type: pserv
+          name: librechat-postgres
+          property: port
+      - key: POSTGRES_DB
+        value: librechat_rag
+      - key: POSTGRES_USER
+        value: librechat
+      - key: POSTGRES_PASSWORD
+        fromService:
+          type: pserv
+          name: librechat-postgres
+          envVarKey: POSTGRES_PASSWORD
+      - key: EMBEDDINGS_PROVIDER
+        value: openai
+      - key: EMBEDDINGS_MODEL
+        value: text-embedding-3-large
+      - key: EMBEDDINGS_DIMENSIONS
+        value: 3072
+      - key: RAG_USE_FULL_CONTEXT
+        value: true
+      - key: MAX_CHUNK_SIZE
+        value: 8192
+      - key: CHUNK_OVERLAP
+        value: 400
     healthCheckPath: /health
 
-# LibreChat Backend API
-
-- type: web
-  name: librechat-backend
-  env: node
-  plan: free  # Changed from ‘starter’ to ‘free’
-  buildCommand: npm ci
-  startCommand: npm run backend
-  envVars:
-  
-  # Server Configuration
-  - key: NODE_ENV
-    value: production
-  - key: PORT
-    value: 3080
-  - key: HOST
-    value: 0.0.0.0
-  
-  # MongoDB Connection
-  - key: MONGO_HOST
-    fromService:
-    type: pserv
-    name: librechat-mongodb
-    property: host
-  - key: MONGO_PORT
-    fromService:
-    type: pserv
-    name: librechat-mongodb
-    property: port
-  - key: MONGO_DB
-    value: LibreChat
-  - key: MONGO_USER
-    value: librechat
-  - key: MONGO_PASSWORD
-    fromService:
-    type: pserv
-    name: librechat-mongodb
-    envVarKey: MONGO_INITDB_ROOT_PASSWORD
-  
-  # Redis Connection
-  - key: REDIS_URI
-    fromService:
-    type: redis
-    name: librechat-redis
-    property: connectionString
-  
-  # MeiliSearch Connection
-  - key: MEILI_HOST
-    fromService:
-    type: pserv
-    name: librechat-meilisearch
-    property: host
-  - key: MEILI_HTTP_ADDR
-    fromService:
-    type: pserv
-    name: librechat-meilisearch
-    property: host
-  - key: MEILI_MASTER_KEY
-    fromService:
-    type: pserv
-    name: librechat-meilisearch
-    envVarKey: MEILI_MASTER_KEY
-  
-  # RAG API Connection
-  - key: RAG_API_URL
-    fromService:
-    type: web
-    name: librechat-rag-api
-    property: host
-  
-  # JWT and Security
-  - key: JWT_SECRET
-    generateValue: true
-  - key: JWT_REFRESH_SECRET
-    generateValue: true
-  - key: CREDS_KEY
-    generateValue: true
-  - key: CREDS_IV
-    generateValue: true
-  
-  # Session Configuration
-  - key: SESSION_EXPIRY
-    value: 1000 * 60 * 15
-  - key: REFRESH_TOKEN_EXPIRY
-    value: 1000 * 60 * 60 * 24 * 7
-  
-  # Registration and Authentication
-  - key: ALLOW_EMAIL_LOGIN
-    value: true
-  - key: ALLOW_REGISTRATION
-    value: true
-  - key: ALLOW_SOCIAL_LOGIN
-    value: false
-  - key: ALLOW_SOCIAL_REGISTRATION
-    value: false
-  
-  # AI Provider Configuration
-  - key: ENDPOINTS
-    value: openai,anthropic,google,agents,assistants,azureOpenAI,custom
-  - fromGroup: ai-providers-primary
-  - key: OPENAI_MODELS
-    value: gpt-4o,gpt-4.1,gpt-4.5,o1,o3,o4-mini
-  - key: DEBUG_OPENAI
-    value: false
-  - key: TITLE_CONVO
-    value: true
-  - key: OPENAI_TITLE_MODEL
-    value: gpt-4.1-mini
-  - key: OPENAI_SUMMARIZE
-    value: true
-  - key: OPENAI_SUMMARY_MODEL
-    value: gpt-4.1-mini
-  - key: OPENAI_FORCE_PROMPT
-    value: false
-  
-  # OpenAI Configuration
-  - key: OPENAI_MODELS
-    value: gpt-4o,gpt-4.1,gpt-4.5,o1,o3,o4-mini
-  - key: DEBUG_OPENAI
-    value: false
-  - key: TITLE_CONVO
-    value: true
-  - key: OPENAI_TITLE_MODEL
-    value: gpt-4.1-mini
-  - key: OPENAI_SUMMARIZE
-    value: true
-  - key: OPENAI_SUMMARY_MODEL
-    value: gpt-4.1-mini
-  - key: OPENAI_FORCE_PROMPT
-    value: false
-  
-  # Anthropic Configuration
-  - key: ANTHROPIC_MODELS
-    value: claude-opus-4-20250514,claude-sonnet-4-20250514,claude-sonnet-3.7-20250101,claude-sonnet-3.7-thinking-20250101
-  
-  # Google Configuration
-  - key: GOOGLE_MODELS
-    value: gemini-2.5-pro,gemini-2.5-flash,gemini-2.0-flash
-  - fromGroup: ai-providers-custom
-  
-  # Embedding Configuration
-  - key: EMBEDDINGS_PROVIDER
-    value: openai
-  - key: EMBEDDINGS_MODEL
-    value: text-embedding-3-large
-  - key: EMBEDDINGS_DIMENSIONS
-    value: 3072
-  - fromGroup: image-generation
-  
-  # Image Generation Configuration
-  - key: DALLE3_SYSTEM_PROMPT
-    value: Your image will be generated according to the following prompt
-  - fromGroup: speech-services
-  
-  # Search Configuration
-  - key: SEARCH
-    value: true
-  - fromGroup: search-services
-  - fromGroup: code-interpreter
-  
-  # Assistants Configuration
-  - key: ASSISTANTS_BASE_URL
-    value: https://api.openai.com/v1
-  - key: ASSISTANTS_MODELS
-    value: gpt-4o,gpt-4.1,gpt-4.5
+  # LibreChat Backend API
+  - type: web
+    name: librechat-backend
+    env: node
+    plan: starter
+    buildCommand: npm ci
+    startCommand: npm run backend
+    envVars:
+      # Server Configuration
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3080
+      - key: HOST
+        value: 0.0.0.0
+      
+      # MongoDB Connection
+      - fromGroup: ai-providers-primary
+      - fromGroup: ai-providers-custom
+      - fromGroup: speech-services
+      - key: MONGO_HOST
+        fromService:
+          type: pserv
+          name: librechat-mongodb
+          property: host
+      - key: MONGO_PORT
+        fromService:
+          type: pserv
+          name: librechat-mongodb
+          property: port
+      - key: MONGO_DB
+        value: LibreChat
+      - key: MONGO_USER
+        value: librechat
+      - key: MONGO_PASSWORD
+        fromService:
+          type: pserv
+          name: librechat-mongodb
+          envVarKey: MONGO_INITDB_ROOT_PASSWORD
+      
+      # Redis Connection
+      - fromGroup: search-services
+      - fromGroup: code-interpreter
+      - fromGroup: image-generation
+      - key: REDIS_URI
+        fromService:
+          type: redis
+          name: librechat-redis
+          property: connectionString
+      
+      # MeiliSearch Connection
+      - key: MEILI_HOST
+        fromService:
+          type: pserv
+          name: librechat-meilisearch
+          property: host
+      - key: MEILI_HTTP_ADDR
+        fromService:
+          type: pserv
+          name: librechat-meilisearch
+          property: host
+      - key: MEILI_MASTER_KEY
+        fromService:
+          type: pserv
+          name: librechat-meilisearch
+          envVarKey: MEILI_MASTER_KEY
+      
+      # RAG API Connection
+      - key: RAG_API_URL
+        fromService:
+          type: web
+          name: librechat-rag-api
+          property: host
+      
+      # JWT and Security
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: CREDS_KEY
+        generateValue: true
+      - key: CREDS_IV
+        generateValue: true
+      
+      # Session Configuration
+      - key: SESSION_EXPIRY
+        value: 1000 * 60 * 15
+      - key: REFRESH_TOKEN_EXPIRY
+        value: 1000 * 60 * 60 * 24 * 7
+      
+      # Registration and Authentication
+      - key: ALLOW_EMAIL_LOGIN
+        value: true
+      - key: ALLOW_REGISTRATION
+        value: true
+      - key: ALLOW_SOCIAL_LOGIN
+        value: false
+      - key: ALLOW_SOCIAL_REGISTRATION
+        value: false
+      
+      # AI Provider Configuration
+      - key: ENDPOINTS
+        value: openai,anthropic,google,agents,assistants,azureOpenAI,custom
+      
+      # OpenAI Configuration
+      - key: OPENAI_MODELS
+        value: gpt-4o,gpt-4.1,gpt-4.5,o1,o3,o4-mini
+      - key: DEBUG_OPENAI
+        value: false
+      - key: TITLE_CONVO
+        value: true
+      - key: OPENAI_TITLE_MODEL
+        value: gpt-4.1-mini
+      - key: OPENAI_SUMMARIZE
+        value: true
+      - key: OPENAI_SUMMARY_MODEL
+        value: gpt-4.1-mini
+      - key: OPENAI_FORCE_PROMPT
+        value: false
+      
+      # Anthropic Configuration
+      - key: ANTHROPIC_MODELS
+        value: claude-opus-4-20250514,claude-sonnet-4-20250514,claude-sonnet-3.7-20250101,claude-sonnet-3.7-thinking-20250101
+      
+      # Google Configuration
+      - key: GOOGLE_MODELS
+        value: gemini-2.5-pro,gemini-2.5-flash,gemini-2.0-flash
+      
+      # Embedding Configuration
+      - key: EMBEDDINGS_PROVIDER
+        value: openai
+      - key: EMBEDDINGS_MODEL
+        value: text-embedding-3-large
+      - key: EMBEDDINGS_DIMENSIONS
+        value: 3072
+      
+      # Image Generation
+      - key: DALLE3_SYSTEM_PROMPT
+        value: Your image will be generated according to the following prompt
+      
+      # Search Configuration
+      - key: SEARCH
+        value: true
+      
+      # Assistants Configuration
+      - key: ASSISTANTS_BASE_URL
+        value: https://api.openai.com/v1
+      - key: ASSISTANTS_MODELS
+        value: gpt-4o,gpt-4.1,gpt-4.5
     healthCheckPath: /api/health
 
-# LibreChat Frontend
-
-- type: web
-  name: librechat-frontend
-  env: static
-  plan: free  # Changed from ‘starter’ to ‘free’
-  buildCommand: npm ci
-  staticPublishPath: ./client/dist
-  envVars:
-  - key: VITE_APP_TITLE
-    value: LibreChat
-  - key: VITE_CUSTOM_FOOTER
-    value: “Powered by LibreChat”
-  - key: VITE_SHOW_BIRTHDAY_ICON
-    value: true
+  # LibreChat Frontend
+  - type: web
+    name: librechat-frontend
+    env: static
+    plan: starter
+    buildCommand: npm ci
+    staticPublishPath: ./client/dist
+    envVars:
+      - key: VITE_APP_TITLE
+        value: LibreChat
+      - key: VITE_CUSTOM_FOOTER
+        value: "Powered by LibreChat"
+      - key: VITE_SHOW_BIRTHDAY_ICON
+        value: true
 
 databases:
-
-# Additional PostgreSQL for vector storage
-
-- name: librechat-vectors
-  databaseName: vectors
-  user: librechat
-  plan: free  # Changed from ‘starter’ to ‘free’
+  # Additional PostgreSQL for vector storage
+  - name: librechat-vectors
+    databaseName: vectors
+    user: librechat
+    plan: starter
 
 envVarGroups:
+  - name: ai-providers-primary
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GOOGLE_KEY
+        sync: false
+      - key: ASSISTANTS_API_KEY
+        sync: false
 
-- name: ai-providers-primary
-  envVars:
-  - key: OPENAI_API_KEY
-    sync: false
-  - key: ANTHROPIC_API_KEY
-    sync: false
-  - key: GOOGLE_KEY
-    sync: false
-  - key: ASSISTANTS_API_KEY
-    sync: false
-- name: ai-providers-custom
-  envVars:
-  - key: OPENROUTER_API_KEY
-    sync: false
-  - key: HUGGINGFACE_TOKEN
-    sync: false
-  - key: GROQ_API_KEY
-    sync: false
-  - key: MISTRAL_API_KEY
-    sync: false
-  - key: PERPLEXITY_API_KEY
-    sync: false
-- name: speech-services
-  envVars:
-  - key: STT_API_KEY
-    sync: false
-  - key: TTS_API_KEY
-    sync: false
-  - key: ELEVENLABS_API_KEY
-    sync: false
-- name: search-services
-  envVars:
-  - key: GOOGLE_SEARCH_API_KEY
-    sync: false
-  - key: GOOGLE_CSE_ID
-    sync: false
-  - key: SERPAPI_API_KEY
-    sync: false
-  - key: TAVILY_API_KEY
-    sync: false
-- name: code-interpreter
-  envVars:
-  - key: LIBRECHAT_CODE_API_KEY
-    sync: false
-- name: image-generation
-  envVars:
-  - key: DALLE_API_KEY
-    sync: false
+  - name: ai-providers-custom
+    envVars:
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: HUGGINGFACE_TOKEN
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: MISTRAL_API_KEY
+        sync: false
+      - key: PERPLEXITY_API_KEY
+        sync: false
+
+  - name: speech-services
+    envVars:
+      - key: STT_API_KEY
+        sync: false
+      - key: TTS_API_KEY
+        sync: false
+      - key: ELEVENLABS_API_KEY
+        sync: false
+
+  - name: search-services
+    envVars:
+      - key: GOOGLE_SEARCH_API_KEY
+        sync: false
+      - key: GOOGLE_CSE_ID
+        sync: false
+      - key: SERPAPI_API_KEY
+        sync: false
+      - key: TAVILY_API_KEY
+        sync: false
+
+  - name: code-interpreter
+    envVars:
+      - key: LIBRECHAT_CODE_API_KEY
+        sync: false
+
+  - name: image-generation
+    envVars:
+      - key: DALLE_API_KEY
+        sync: false
