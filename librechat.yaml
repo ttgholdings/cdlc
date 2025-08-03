@@ -1,0 +1,16 @@
+# Basic LibreChat Configuration
+server:
+  host: "localhost"
+  port: 3000
+
+database:
+  type: "sqlite"
+  path: "librechat.db"
+
+logging:
+  level: "info"
+  format: "json"
+
+features:
+  enableChat: true
+  enableNotifications: true
