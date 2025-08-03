@@ -266,7 +266,7 @@ services:
   - type: web
     name: librechat-frontend
     env: static
-    plan: starter
+    plan: free
     buildCommand: npm ci
     staticPublishPath: ./client/dist
     envVars:
@@ -282,7 +282,7 @@ databases:
   - name: librechat-vectors
     databaseName: vectors
     user: librechat
-    plan: starter
+    plan: basic-256mb
 
 envVarGroups:
   - name: ai-providers-primary
