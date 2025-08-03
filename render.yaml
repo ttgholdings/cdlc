@@ -266,7 +266,7 @@ services:
   - type: web
     name: librechat-frontend
     env: static
-    plan: free
+    plan: starter
     buildCommand: npm ci
     staticPublishPath: ./client/dist
     envVars:
