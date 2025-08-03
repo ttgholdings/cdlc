@@ -1,16 +1,101 @@
-# Basic LibreChat Configuration
-server:
-  host: "localhost"
-  port: 3000
+version: 1.2.8
+cache: true
 
-database:
-  type: "sqlite"
-  path: "librechat.db"
+# Memory Configuration - Enables conversation memory and personalization
+memory:
+  disabled: false
+  validKeys:
+    - "user_preferences"
+    - "conversation_context"
+    - "learned_facts"
+    - "personal_information"
+  tokenLimit: 2000
+  personalize: true
+  messageWindowSize: 5
+  agent:
+    provider: "openAI"
+    model: "gpt-4.1-mini"  # Cost-effective model for memory processing
+    instructions: |
+      Store memory using only the specified validKeys. For user_preferences: save 
+      explicitly stated preferences about communication style, topics of interest, 
+      or workflow preferences. For conversation_context: save important facts or 
+      ongoing projects mentioned. For learned_facts: save objective information 
+      about the user. For personal_information: save only what the user explicitly 
+      shares about themselves. Delete outdated or incorrect information promptly.
+    model_parameters:
+      temperature: 0.2
+      max_tokens: 1500
+      top_p: 0.8
 
-logging:
-  level: "info"
-  format: "json"
+# Custom Endpoints Configuration
+endpoints:
+  custom:
+    - name: "OpenRouter"
+      apiKey: "${OPENROUTER_API_KEY}"
+      baseURL: "https://openrouter.ai/api/v1"
+      models:
+        fetch: true  # Dynamically fetch all available models
+      titleConvo: true
+      titleModel: "anthropic/claude-3.5-sonnet"
+      summarize: false
+      forcePrompt: false
+      modelDisplayLabel: "OpenRouter"
+      iconURL: "https://openrouter.ai/favicon.ico"
 
-features:
-  enableChat: true
-  enableNotifications: true
+    - name: "HuggingFace"
+      apiKey: "${HUGGINGFACE_TOKEN}"
+      baseURL: "https://api-inference.huggingface.co/v1"
+      models:
+        fetch: true  # Dynamically fetch all compatible models
+      titleConvo: true
+      titleModel: "meta-llama/Llama-3.1-8B-Instruct"
+      summarize: false
+      forcePrompt: false
+      modelDisplayLabel: "HuggingFace"
+
+    - name: "Groq"
+      apiKey: "${GROQ_API_KEY}"
+      baseURL: "https://api.groq.com/openai/v1"
+      models:
+        default: [
+          "llama-3.1-405b-reasoning",
+          "llama-3.1-70b-versatile",
+          "llama-3.1-8b-instant",
+          "mixtral-8x7b-32768",
+          "gemma2-9b-it"
+        ]
+      titleConvo: true
+      titleModel: "llama-3.1-8b-instant"
+      summarize: false
+      forcePrompt: false
+      modelDisplayLabel: "Groq"
+
+# File Configuration
+fileConfig:
+  endpoints:
+    assistants:
+      fileLimit: 20
+      fileSizeLimit: 512  # MB
+      totalSizeLimit: 10  # GB
+      supportedMimeTypes:
+        - "text/plain"
+        - "text/csv"
+        - "application/pdf"
+        - "application/json"
+        - "text/markdown"
+        - "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        - "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        - "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+# Rate Limits Configuration
+rateLimits:
+  fileUploads:
+    ipMax: 100
+    ipWindowInMinutes: 60
+    userMax: 50
+    userWindowInMinutes: 60
+  conversationsImport:
+    ipMax: 20
+    ipWindowInMinutes: 60
+    userMax: 10
+    userWindowInMinutes: 60
