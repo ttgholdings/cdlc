@@ -102,10 +102,7 @@ services:
     type: pserv
     name: librechat-postgres
     envVarKey: POSTGRES_PASSWORD
-  - key: OPENAI_API_KEY
-    sync: false
-  - key: ANTHROPIC_API_KEY
-    sync: false
+  - fromGroup: ai-providers-primary
   - key: EMBEDDINGS_PROVIDER
     value: openai
   - key: EMBEDDINGS_MODEL
@@ -219,10 +216,23 @@ services:
   # AI Provider Configuration
   - key: ENDPOINTS
     value: openai,anthropic,google,agents,assistants,azureOpenAI,custom
+  - fromGroup: ai-providers-primary
+  - key: OPENAI_MODELS
+    value: gpt-4o,gpt-4.1,gpt-4.5,o1,o3,o4-mini
+  - key: DEBUG_OPENAI
+    value: false
+  - key: TITLE_CONVO
+    value: true
+  - key: OPENAI_TITLE_MODEL
+    value: gpt-4.1-mini
+  - key: OPENAI_SUMMARIZE
+    value: true
+  - key: OPENAI_SUMMARY_MODEL
+    value: gpt-4.1-mini
+  - key: OPENAI_FORCE_PROMPT
+    value: false
   
   # OpenAI Configuration
-  - key: OPENAI_API_KEY
-    sync: false
   - key: OPENAI_MODELS
     value: gpt-4o,gpt-4.1,gpt-4.5,o1,o3,o4-mini
   - key: DEBUG_OPENAI
@@ -239,28 +249,13 @@ services:
     value: false
   
   # Anthropic Configuration
-  - key: ANTHROPIC_API_KEY
-    sync: false
   - key: ANTHROPIC_MODELS
     value: claude-opus-4-20250514,claude-sonnet-4-20250514,claude-sonnet-3.7-20250101,claude-sonnet-3.7-thinking-20250101
   
   # Google Configuration
-  - key: GOOGLE_KEY
-    sync: false
   - key: GOOGLE_MODELS
     value: gemini-2.5-pro,gemini-2.5-flash,gemini-2.0-flash
-  
-  # Custom Endpoints
-  - key: OPENROUTER_API_KEY
-    sync: false
-  - key: HUGGINGFACE_TOKEN
-    sync: false
-  - key: GROQ_API_KEY
-    sync: false
-  - key: MISTRAL_API_KEY
-    sync: false
-  - key: PERPLEXITY_API_KEY
-    sync: false
+  - fromGroup: ai-providers-custom
   
   # Embedding Configuration
   - key: EMBEDDINGS_PROVIDER
@@ -269,40 +264,20 @@ services:
     value: text-embedding-3-large
   - key: EMBEDDINGS_DIMENSIONS
     value: 3072
+  - fromGroup: image-generation
   
-  # Image Generation
-  - key: DALLE_API_KEY
-    sync: false
+  # Image Generation Configuration
   - key: DALLE3_SYSTEM_PROMPT
     value: Your image will be generated according to the following prompt
-  
-  # Speech Configuration
-  - key: STT_API_KEY
-    sync: false
-  - key: TTS_API_KEY
-    sync: false
-  - key: ELEVENLABS_API_KEY
-    sync: false
+  - fromGroup: speech-services
   
   # Search Configuration
   - key: SEARCH
     value: true
-  - key: GOOGLE_SEARCH_API_KEY
-    sync: false
-  - key: GOOGLE_CSE_ID
-    sync: false
-  - key: SERPAPI_API_KEY
-    sync: false
-  - key: TAVILY_API_KEY
-    sync: false
-  
-  # Code Interpreter
-  - key: LIBRECHAT_CODE_API_KEY
-    sync: false
+  - fromGroup: search-services
+  - fromGroup: code-interpreter
   
   # Assistants Configuration
-  - key: ASSISTANTS_API_KEY
-    sync: false
   - key: ASSISTANTS_BASE_URL
     value: https://api.openai.com/v1
   - key: ASSISTANTS_MODELS
@@ -343,6 +318,8 @@ envVarGroups:
   - key: ANTHROPIC_API_KEY
     sync: false
   - key: GOOGLE_KEY
+    sync: false
+  - key: ASSISTANTS_API_KEY
     sync: false
 - name: ai-providers-custom
   envVars:
